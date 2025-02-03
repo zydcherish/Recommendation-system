@@ -1,0 +1,135 @@
+// 全局变量
+:root {
+  --primary-color: #409EFF;
+  --primary-light: #66b1ff;
+  --success-color: #67C23A;
+  --warning-color: #E6A23C;
+  --danger-color: #F56C6C;
+  --info-color: #909399;
+  --text-color: #303133;
+  --text-color-secondary: #606266;
+  --border-color: #DCDFE6;
+  --background-color: #F5F7FA;
+}
+
+// 全局样式
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  
+  &:hover {
+    color: var(--primary-light);
+  }
+}
+
+// 通用布局类
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.page-container {
+  padding: 20px;
+}
+
+// 通用flex布局类
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+// 通用间距类
+.mt-2 {
+  margin-top: 8px;
+}
+
+.mb-2 {
+  margin-bottom: 8px;
+}
+
+.ml-2 {
+  margin-left: 8px;
+}
+
+.mr-2 {
+  margin-right: 8px;
+}
+
+.p-2 {
+  padding: 8px;
+}
+
+// 通用卡片样式
+.card {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+  padding: 20px;
+}
+
+// 表格样式优化
+.el-table {
+  .el-table__header-wrapper {
+    th {
+      background-color: var(--background-color);
+      color: var(--text-color);
+      font-weight: bold;
+    }
+  }
+}
+
+// 表单样式优化
+.el-form {
+  .el-form-item__label {
+    font-weight: bold;
+  }
+}
+
+// 按钮样式优化
+.el-button {
+  &--primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    
+    &:hover {
+      background-color: var(--primary-light);
+      border-color: var(--primary-light);
+    }
+  }
+} 

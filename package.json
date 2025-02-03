@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "echarts": "^5.6.0",
+    "vue-echarts": "^7.0.3"
+  },
+  "name": "recommendation-system",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

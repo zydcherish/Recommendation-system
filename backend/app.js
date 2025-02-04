@@ -1,5 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const compression = require('compression');
 require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
@@ -21,7 +24,11 @@ app.use(cors({
 }));
 
 // 中间件
-app.use(bodyParser.json());
+app.use(helmet());
+app.use(compression());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(logger);
 
 // 请求日志中间件

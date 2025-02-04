@@ -25,7 +25,7 @@ const createOrder = async (req, res) => {
     }
 
     const resource = resources[0];
-    const totalPrice = resource.price * quantity * duration * 24; // 24小时/天
+    const totalPrice = resource.price * quantity * duration; // 按天计费
 
     // 创建订单
     const [result] = await db.query(
@@ -51,12 +51,14 @@ const createOrder = async (req, res) => {
     `, [result.insertId]);
 
     res.status(201).json({
+      code: 200,
       message: '订单创建成功',
-      order: orders[0]
+      data: orders[0]
     });
   } catch (error) {
     console.error('创建订单失败：', error);
     res.status(500).json({ 
+      code: 500,
       message: '创建订单失败',
       error: error.message 
     });
@@ -91,10 +93,18 @@ const getUserOrders = async (req, res) => {
     sql += ' ORDER BY o.created_at DESC';
 
     const [orders] = await db.query(sql, params);
-    res.json(orders);
+    res.json({
+      code: 200,
+      message: '获取订单列表成功',
+      data: orders
+    });
   } catch (error) {
     console.error('获取订单列表失败：', error);
-    res.status(500).json({ message: '获取订单列表失败' });
+    res.status(500).json({ 
+      code: 500,
+      message: '获取订单列表失败',
+      error: error.message
+    });
   }
 };
 
@@ -111,20 +121,34 @@ const getOrderDetail = async (req, res) => {
         r.cpu,
         r.memory,
         r.storage,
-        r.price
+        r.price,
+        u.username as contact_name,
+        u.email as contact_phone
       FROM orders o
       LEFT JOIN resources r ON o.resource_id = r.id
+      LEFT JOIN users u ON o.user_id = u.id
       WHERE o.id = ? AND o.user_id = ?
     `, [orderId, userId]);
 
     if (orders.length === 0) {
-      return res.status(404).json({ message: '订单不存在' });
+      return res.status(404).json({
+        code: 404,
+        message: '订单不存在'
+      });
     }
 
-    res.json(orders[0]);
+    res.json({
+      code: 200,
+      message: '获取订单详情成功',
+      data: orders[0]
+    });
   } catch (error) {
     console.error('获取订单详情失败：', error);
-    res.status(500).json({ message: '获取订单详情失败' });
+    res.status(500).json({
+      code: 500,
+      message: '获取订单详情失败',
+      error: error.message
+    });
   }
 };
 
@@ -141,14 +165,20 @@ const cancelOrder = async (req, res) => {
     );
 
     if (orders.length === 0) {
-      return res.status(404).json({ message: '订单不存在' });
+      return res.status(404).json({
+        code: 404,
+        message: '订单不存在'
+      });
     }
 
     const order = orders[0];
 
     // 只能取消未支付的订单
     if (order.status !== '未支付') {
-      return res.status(400).json({ message: '只能取消未支付的订单' });
+      return res.status(400).json({
+        code: 400,
+        message: '只能取消未支付的订单'
+      });
     }
 
     // 更新订单状态为已取消
@@ -157,10 +187,18 @@ const cancelOrder = async (req, res) => {
       ['已取消', orderId]
     );
 
-    res.json({ message: '订单已取消' });
+    res.json({
+      code: 200,
+      message: '订单已取消',
+      data: null
+    });
   } catch (error) {
     console.error('取消订单失败：', error);
-    res.status(500).json({ message: '取消订单失败' });
+    res.status(500).json({
+      code: 500,
+      message: '取消订单失败',
+      error: error.message
+    });
   }
 };
 
@@ -177,14 +215,20 @@ const payOrder = async (req, res) => {
     );
 
     if (orders.length === 0) {
-      return res.status(404).json({ message: '订单不存在' });
+      return res.status(404).json({
+        code: 404,
+        message: '订单不存在'
+      });
     }
 
     const order = orders[0];
 
     // 只能支付未支付的订单
     if (order.status !== '未支付') {
-      return res.status(400).json({ message: '订单状态错误' });
+      return res.status(400).json({
+        code: 400,
+        message: '订单状态错误'
+      });
     }
 
     // TODO: 这里应该添加实际的支付逻辑
@@ -194,10 +238,18 @@ const payOrder = async (req, res) => {
       ['已支付', orderId]
     );
 
-    res.json({ message: '支付成功' });
+    res.json({
+      code: 200,
+      message: '支付成功',
+      data: null
+    });
   } catch (error) {
     console.error('支付订单失败：', error);
-    res.status(500).json({ message: '服务器错误' });
+    res.status(500).json({
+      code: 500,
+      message: '支付订单失败',
+      error: error.message
+    });
   }
 };
 

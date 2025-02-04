@@ -35,7 +35,29 @@ const routes = [
         path: 'order/confirm',
         name: 'order-confirm',
         component: () => import('@/views/order/confirm.vue'),
+        props: route => ({ productId: route.query.productId }),
         meta: { title: '确认订单', requiresAuth: true }
+      },
+      {
+        path: 'payment/:id',
+        name: 'payment',
+        component: () => import('@/views/payment/index.vue'),
+        meta: { title: '订单支付', requiresAuth: true }
+      },
+      {
+        path: 'orders',
+        name: 'orders',
+        component: () => import('@/views/orders/index.vue'),
+        meta: { title: '我的订单', requiresAuth: true }
+      },
+      {
+        path: '/profile',
+        name: 'profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: { 
+          requiresAuth: true,
+          title: '个人信息'
+        }
       }
     ]
   },
@@ -116,7 +138,10 @@ router.beforeEach((to, from, next) => {
   const userType = localStorage.getItem('userType')
   
   if (to.meta.requiresAuth && !token) {
-    next({ name: 'login', query: { redirect: to.fullPath } })
+    next({
+      name: 'login',
+      query: { redirect: to.fullPath }
+    })
   } else if (to.meta.requiresAdmin && userType !== 'admin') {
     next({ name: 'home' })
   } else {

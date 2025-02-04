@@ -221,51 +221,61 @@ const reviews = ref([
 const fetchProductDetail = async () => {
   loading.value = true
   try {
-    console.log('开始获取产品详情, ID:', route.params.id)
-    const res = await getProductDetail(route.params.id)
+    const id = route.params.id
+    if (!id) {
+      throw new Error('产品ID不能为空')
+    }
+    console.log('开始获取产品详情, ID:', id)
+    const res = await getProductDetail(id)
     console.log('获取到的产品详情响应:', res)
 
-    if (res.data?.data) {
+    if (res && res.code === 200 && res.data) {
+      const data = res.data
       product.value = {
-        ...res.data.data,
-        cpu: res.data.data.cpu?.toString() || '0',
-        memory: res.data.data.memory?.toString() || '0',
-        storage: res.data.data.storage?.toString() || '0',
-        price: parseFloat(res.data.data.price || 0).toFixed(2),
-        status: res.data.data.status || 'unavailable'
+        id: data.id,
+        name: data.name || '',
+        description: data.description || '',
+        cpu: data.cpu?.toString() || '0',
+        memory: data.memory?.toString() || '0',
+        storage: data.storage?.toString() || '0',
+        price: parseFloat(data.price || 0).toFixed(2),
+        status: data.status || 'unavailable',
+        category: data.category || '',
+        storage_type: data.storage_type || 'ssd',
+        usage_type: data.usage_type || 'general',
+        image_url: data.image_url || `https://picsum.photos/800/600?random=${data.id}`,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        created_at: data.created_at,
+        updated_at: data.updated_at
       }
       console.log('处理后的产品数据:', product.value)
     } else {
-      console.warn('未获取到产品数据:', res.data)
-      ElMessage.error('产品不存在或已下架')
-      router.push('/products')
+      throw new Error(res?.message || '产品不存在或已下架')
     }
   } catch (error) {
-    console.error('获取产品详情失败:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    })
-    ElMessage.error(error.response?.data?.message || '获取产品详情失败，请稍后重试')
+    console.error('获取产品详情失败:', error)
+    ElMessage.error(error.message || '获取产品详情失败，请稍后重试')
     router.push('/products')
   } finally {
     loading.value = false
   }
 }
 
-onMounted(async () => {
-  await fetchProductDetail()
+onMounted(() => {
+  console.log('产品详情页面已挂载')
+  fetchProductDetail()
 })
 
 // 获取产品图片
 const getProductImage = (product) => {
   if (!product) return ''
-  return product.imageUrl || `https://picsum.photos/800/600?random=${product.id}`
+  return product.image_url || `https://picsum.photos/800/600?random=${product.id}`
 }
 
 // 获取产品标签
 const getProductTags = (product) => {
-  return product?.tags ? product.tags.split(',') : []
+  if (!product || !product.tags) return []
+  return Array.isArray(product.tags) ? product.tags : []
 }
 
 // 获取详细CPU信息
@@ -356,7 +366,7 @@ const getUsageFeatures = (usageType) => {
     ],
     render: [
       '专业GPU渲染加速',
-      '大容量存储空间',
+      '大容量显存',
       '支持主流渲染引擎',
       '优化的IO性能'
     ]
@@ -371,9 +381,22 @@ const handleOrder = () => {
     return
   }
   
+  const token = localStorage.getItem('token')
+  if (!token) {
+    ElMessage.warning('请先登录')
+    router.push({
+      name: 'login',
+      query: { redirect: route.fullPath }
+    })
+    return
+  }
+  
   router.push({
-    name: 'order-confirm',
+    path: '/order/confirm',
     query: { productId: product.value.id }
+  }).catch(err => {
+    console.error('路由跳转失败:', err)
+    ElMessage.error('页面跳转失败')
   })
 }
 </script>

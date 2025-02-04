@@ -9,14 +9,21 @@
     </section>
 
     <!-- 热门资源区域 -->
-    <section class="container">
-      <HotResources />
+    <section class="hot-resources-section">
+      <div class="container">
+        <HotResources />
+      </div>
     </section>
   </div>
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import HotResources from '@/components/HotResources.vue'
+
+onMounted(() => {
+  console.log('首页组件已挂载')
+})
 </script>
 
 <style lang="scss" scoped>
@@ -43,6 +50,10 @@ import HotResources from '@/components/HotResources.vue'
     opacity: 0.9;
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
   }
+}
+
+.hot-resources-section {
+  padding: 40px 0;
 }
 
 .container {

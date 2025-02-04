@@ -8,7 +8,7 @@ export function createOrder(data) {
   })
 }
 
-export function getOrderList(params) {
+export function getUserOrders(params) {
   return request({
     url: '/orders',
     method: 'get',
@@ -35,6 +35,16 @@ export function cancelOrder(id) {
   return request({
     url: `/orders/${id}/cancel`,
     method: 'post'
+  })
+}
+
+export function payOrder(data) {
+  return request({
+    url: `/orders/${data.orderId}/pay`,
+    method: 'post',
+    data: {
+      paymentMethod: data.paymentMethod
+    }
   })
 }
 

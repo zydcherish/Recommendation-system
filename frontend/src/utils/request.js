@@ -1,20 +1,24 @@
 import axios from 'axios'
-import { useUserStore } from '@/stores/user'
-import router from '@/router'
 import { ElMessage } from 'element-plus'
+import router from '@/router'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: 'http://localhost:3000/api',  // 恢复原来的配置
-  timeout: 15000
+  baseURL: import.meta.env.VITE_API_URL || '/api', // 从环境变量获取baseURL
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 })
 
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    const userStore = useUserStore()
-    if (userStore.token) {
-      config.headers['Authorization'] = `Bearer ${userStore.token}`
+    console.log('发送请求:', config.url)
+    // 从localStorage获取token
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`
     }
     return config
   },
@@ -27,40 +31,34 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
-    return response
+    console.log('收到响应:', response.config.url, response.data)
+    const res = response.data
+    
+    // 如果返回的状态码不是200,说明接口有问题,抛出错误
+    if (res.code !== 200) {
+      const errMsg = res.message || '系统错误'
+      console.warn('接口返回错误:', errMsg, res)
+      ElMessage.error(errMsg)
+      
+      // 401: 未登录或token过期
+      if (res.code === 401) {
+        localStorage.removeItem('token')
+        router.push('/login')
+      }
+      return Promise.reject(new Error(errMsg))
+    }
+    return res
   },
   error => {
-    const { response } = error
+    console.error('Response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      data: error.response?.data,
+      error: error.message
+    })
     
-    if (response) {
-      // 处理特定的错误状态码
-      switch (response.status) {
-        case 401:
-          // 未授权，清除用户信息并跳转到登录页
-          const userStore = useUserStore()
-          userStore.logout()
-          router.push({
-            path: '/auth/login',
-            query: { redirect: router.currentRoute.value.fullPath }
-          })
-          break
-        case 403:
-          ElMessage.error('没有权限访问该资源')
-          break
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-        case 500:
-          ElMessage.error('服务器错误，请稍后重试')
-          break
-        default:
-          ElMessage.error(response.data?.message || '请求失败')
-      }
-    } else {
-      // 请求超时或网络错误
-      ElMessage.error('网络错误，请检查您的网络连接')
-    }
-    
+    const errMsg = error.response?.data?.message || error.message || '请求失败'
+    ElMessage.error(errMsg)
     return Promise.reject(error)
   }
 )

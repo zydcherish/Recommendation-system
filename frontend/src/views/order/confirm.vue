@@ -187,21 +187,25 @@ const calculateTotal = computed(() => {
 const fetchProductDetail = async () => {
   loading.value = true
   try {
-    console.log('开始获取产品详情, ID:', route.query.productId)
-    const res = await getProductDetail(route.query.productId)
+    const productId = route.query.productId
+    console.log('开始获取产品详情, ID:', productId)
+    if (!productId) {
+      throw new Error('产品ID不能为空')
+    }
+    const res = await getProductDetail(productId)
     console.log('获取到的产品详情响应:', res)
 
-    if (res.data?.data) {
+    if (res?.code === 200 && res.data) {
       product.value = {
-        ...res.data.data,
-        cpu: res.data.data.cpu?.toString() || '0',
-        memory: res.data.data.memory?.toString() || '0',
-        storage: res.data.data.storage?.toString() || '0',
-        price: parseFloat(res.data.data.price || 0).toFixed(2)
+        ...res.data,
+        cpu: res.data.cpu?.toString() || '0',
+        memory: res.data.memory?.toString() || '0',
+        storage: res.data.storage?.toString() || '0',
+        price: parseFloat(res.data.price || 0).toFixed(2)
       }
       console.log('处理后的产品数据:', product.value)
     } else {
-      console.warn('未获取到产品数据:', res.data)
+      console.warn('未获取到产品数据:', res)
       ElMessage.error('产品不存在或已下架')
       router.push('/products')
     }
@@ -240,20 +244,27 @@ const submitOrder = async () => {
     
     submitting.value = true
     const orderData = {
-      productId: product.value.id,
-      duration: orderForm.value.duration,
+      resourceId: product.value.id,
+      duration: parseInt(orderForm.value.duration),
+      quantity: 1,
       contactName: orderForm.value.contactName,
       contactPhone: orderForm.value.contactPhone,
-      remark: orderForm.value.remark,
-      totalAmount: calculateTotal.value
+      remark: orderForm.value.remark || '',
+      amount: calculateTotal.value
     }
 
+    console.log('提交订单数据:', orderData)
     const res = await createOrder(orderData)
-    if (res.data?.orderId) {
+    console.log('订单提交响应:', res)
+    
+    if (res?.code === 200 && res.data?.id) {
       ElMessage.success('订单提交成功')
-      router.push(`/orders/${res.data.orderId}`)
+      router.push({
+        name: 'payment',
+        params: { id: res.data.id }
+      })
     } else {
-      ElMessage.error('订单提交失败，请重试')
+      throw new Error(res?.message || '订单提交失败')
     }
   } catch (error) {
     console.error('提交订单失败:', error)

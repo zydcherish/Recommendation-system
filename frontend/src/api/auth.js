@@ -3,7 +3,7 @@ import request from '@/utils/request'
 export function login(data) {
   const { email, password } = data
   return request({
-    url: '/auth/login',
+    url: '/auth/user/login',
     method: 'post',
     data: { email, password }
   })
@@ -26,14 +26,14 @@ export function logout() {
 
 export function getUserInfo() {
   return request({
-    url: '/auth/user-info',
+    url: '/auth/user/info',
     method: 'get'
   })
 }
 
 export function updateUserInfo(data) {
   return request({
-    url: '/auth/user-info',
+    url: '/auth/user/info',
     method: 'put',
     data
   })
@@ -41,7 +41,7 @@ export function updateUserInfo(data) {
 
 export function changePassword(data) {
   return request({
-    url: '/auth/change-password',
+    url: '/auth/user/change-password',
     method: 'post',
     data
   })

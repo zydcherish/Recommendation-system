@@ -285,7 +285,80 @@ const changePassword = async (req, res) => {
   }
 };
 
+// 用户注册
+const register = async (req, res) => {
+  try {
+    const { username, email, password, phone } = req.body;
+    console.log('注册请求数据:', { username, email, phone }); // 添加日志
+    
+    // 验证用户名和密码
+    if (!username || !password) {
+      return res.status(400).json({
+        code: 400,
+        message: '用户名和密码为必填项'
+      });
+    }
+
+    // 如果提供了邮箱，检查是否已存在
+    if (email) {
+      const [existingUsers] = await db.execute(
+        'SELECT id FROM users WHERE email = ?',
+        [email]
+      );
+
+      if (existingUsers.length > 0) {
+        return res.status(400).json({
+          code: 400,
+          message: '该邮箱已被注册'
+        });
+      }
+    }
+
+    // 密码加密
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 插入新用户，使用数据库默认值
+    const [result] = await db.execute(
+      `INSERT INTO users 
+       (username, password, email, phone, type, status) 
+       VALUES (?, ?, ?, ?, 'user', 'active')`,
+      [username, hashedPassword, email || null, phone || null]
+    );
+
+    console.log('用户创建成功:', result.insertId); // 添加日志
+
+    // 生成JWT token
+    const token = jwt.sign(
+      { id: result.insertId, type: 'user' },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.status(201).json({
+      code: 201,
+      message: '注册成功',
+      data: {
+        token,
+        user: {
+          id: result.insertId,
+          username,
+          email: email || null,
+          type: 'user'
+        }
+      }
+    });
+  } catch (error) {
+    console.error('注册失败:', error.message, error.stack);
+    res.status(500).json({
+      code: 500,
+      message: '注册失败，请稍后重试',
+      debug: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
+  register,
   userLogin,
   adminLogin,
   logout,

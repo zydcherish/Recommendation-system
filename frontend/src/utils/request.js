@@ -34,20 +34,22 @@ service.interceptors.response.use(
     console.log('收到响应:', response.config.url, response.data)
     const res = response.data
     
-    // 如果返回的状态码不是200,说明接口有问题,抛出错误
-    if (res.code !== 200) {
-      const errMsg = res.message || '系统错误'
-      console.warn('接口返回错误:', errMsg, res)
-      ElMessage.error(errMsg)
-      
-      // 401: 未登录或token过期
-      if (res.code === 401) {
-        localStorage.removeItem('token')
-        router.push('/login')
-      }
-      return Promise.reject(new Error(errMsg))
+    // 2xx 都是成功响应
+    if (res.code >= 200 && res.code < 300) {
+      return res
     }
-    return res
+    
+    // 非2xx的状态码，说明接口有问题
+    const errMsg = res.message || '系统错误'
+    console.warn('接口返回错误:', errMsg, res)
+    ElMessage.error(errMsg)
+    
+    // 401: 未登录或token过期
+    if (res.code === 401) {
+      localStorage.removeItem('token')
+      router.push('/login')
+    }
+    return Promise.reject(new Error(errMsg))
   },
   error => {
     console.error('Response error:', {

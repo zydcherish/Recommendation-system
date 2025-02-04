@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login as loginApi, logout as logoutApi, getUserInfo } from '@/api/auth'
+import { login as loginApi, logout as logoutApi, getUserInfo, register as registerApi } from '@/api/auth'
 import { ElMessage } from 'element-plus'
 
 export const useUserStore = defineStore('user', () => {
@@ -64,6 +64,22 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  async function register(data) {
+    try {
+      const res = await registerApi(data)
+      
+      if (res.data) {
+        // 注册成功，但不保存登录状态
+        // 用户需要重新登录
+        return res.data
+      }
+      throw new Error('注册失败，请稍后重试')
+    } catch (error) {
+      console.error('Register error:', error)
+      throw error
+    }
+  }
+
   return {
     token,
     userInfo,
@@ -72,6 +88,7 @@ export const useUserStore = defineStore('user', () => {
     isAdmin,
     login,
     logout,
-    fetchUserInfo
+    fetchUserInfo,
+    register
   }
 }) 
